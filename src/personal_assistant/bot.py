@@ -1,9 +1,6 @@
 import logging
-import os
 from datetime import datetime
-from zoneinfo import ZoneInfo
 
-from dotenv import load_dotenv
 from telegram import Update
 from telegram.ext import (
     Application,
@@ -13,7 +10,7 @@ from telegram.ext import (
     filters,
 )
 
-TIMEZONE = ZoneInfo("Europe/Amsterdam")
+from personal_assistant.config import Settings, load_settings
 
 logging.basicConfig(
     format="%(asctime)s %(levelname)s %(name)s: %(message)s",
@@ -32,8 +29,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def time_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Reply to /time with the current time in Istanbul"""
-    now = datetime.now(TIMEZONE)
+    """Reply to /time with the current time in the user's timezone."""
+    settings: Settings = context.bot_data["settings"]
+    now = datetime.now(settings.timezone)
     formatted = now.strftime("%d.%m.%Y %H:%M")
     await update.message.reply_text(f"Time is: {formatted}")
 
@@ -45,13 +43,15 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 def main() -> None:
-    load_dotenv()
-    token = os.environ["TELEGRAM_BOT_TOKEN"]
+    settings = load_settings()
 
-    app = Application.builder().token(token).build()
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CommandHandler("time", time_command))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
+    app = Application.builder().token(settings.telegram_bot_token).build()
+    app.bot_data["settings"] = settings
+    allowed = filters.User(user_id=settings.allowed_user_id)
+
+    app.add_handler(CommandHandler("start", start, filters=allowed))
+    app.add_handler(CommandHandler("time", time_command, filters=allowed))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND & allowed, echo))
 
     logger.info("Bot is running. Press Ctrl+C to stop.")
     app.run_polling()
