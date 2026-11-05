@@ -1,7 +1,7 @@
 [project]
-name = "agri-weather"
+name = "personal-assistant"
 version = "0.1.0"
-description = "Add your description here"
+description = "A personal assistant on Telegram: tasks, reminders and daily briefings."
 readme = "README.md"
 authors = [
     { name = "Eren", email = "aerenonem@gmail.com" }
