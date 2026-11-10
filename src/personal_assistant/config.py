@@ -10,6 +10,7 @@ class Settings:
     telegram_bot_token: str = field(repr=False)
     allowed_user_id: int
     timezone: ZoneInfo
+    database_path: str
 
 
 def load_settings() -> Settings:
@@ -18,4 +19,5 @@ def load_settings() -> Settings:
         telegram_bot_token=os.environ["TELEGRAM_BOT_TOKEN"],
         allowed_user_id=int(os.environ["ALLOWED_USER_ID"]),
         timezone=ZoneInfo(os.environ["TIMEZONE"]),
+        database_path=os.environ.get("DATABASE_PATH", "data/assistant.db"),
     )
