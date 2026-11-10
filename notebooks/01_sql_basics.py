@@ -1,5 +1,5 @@
 import sqlite3
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 
 conn = sqlite3.connect(":memory:")
@@ -17,7 +17,7 @@ conn.execute("""
     )
 """)
 
-created_at = datetime.now(UTC).isoformat()
+created_at = datetime.now(timezone.utc).isoformat()
 
 conn.execute(
     "INSERT INTO tasks (title, due_at, created_at) VALUES (?, ?, ?)",
@@ -42,7 +42,7 @@ print("All tasks:")
 for row in conn.execute("SELECT id, title, due_at, done_at FROM tasks"):
     print(dict(row))
 
-done_at = datetime.now(UTC).isoformat()
+done_at = datetime.now(timezone.utc).isoformat()
 conn.execute("UPDATE tasks SET done_at = ? WHERE id = ?", (done_at, 1))
 
 print("\nOpen tasks:")
@@ -50,6 +50,7 @@ for row in conn.execute("SELECT id, title FROM tasks WHERE done_at IS NULL"):
     print(dict(row))
 
 print("\nTasks with time slot")
+
 query = """
     SELECT id, title, due_at
     FROM tasks
